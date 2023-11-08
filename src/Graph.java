@@ -15,16 +15,24 @@ import java.util.Stack;
 class Graph {
     private int nodeCount;
     public String result = "";
+    private int sourceNode;
 
     // list of linked lists for saving adjacency list
     private ArrayList<LinkedList<Integer>> adjacencyList = new ArrayList<>();
 
-    public Graph(int nodeCount) {
+    public Graph() {
+    }
+
+    public void setNodeCount(int nodeCount) {
         this.nodeCount = nodeCount;
 
         for (int i = 0; i < this.nodeCount; i++) {
             this.addVertex(i);
         }
+    }
+
+    public void setSourceNode(int sourceNode) {
+        this.sourceNode = sourceNode;
     }
 
     void clearResult() {
@@ -41,64 +49,32 @@ class Graph {
         adjacencyList.get(idx).add(w);
     }
 
-    // recursive DFS tool
-    void Recurse(int vertex, ArrayList<Boolean> visited) {
-        // mark the current vertex as visited
-        // visited.get(vertex) = true;
-        visited.set(vertex, true);
-        // for saving the result
-        result = result + vertex + "\n";
-
-        // recurse over adjecant vertices
-        Iterator<Integer> itr = adjacencyList.get(vertex).listIterator();
-        while (itr.hasNext()) {
-            int nextVertex = itr.next();
-            System.out.println(String.format("reaching first %d", nextVertex));
-            if (!visited.get(nextVertex)) {
-                System.out.println(String.format("reaching unvisited %d", nextVertex));
-                Recurse(nextVertex, visited);
-            }
-        }
-        // for saving the result
-        // result = result + vertex + "\n";
-    }
-
-    // recursive DFS
-    void recursiveDFS() {
-        // mark all vertices unvisited
-        // boolean visited[] = new boolean[nodeCount];
-        ArrayList<Boolean> visited = new ArrayList<Boolean>(nodeCount);
-        for (int i = 0; i < nodeCount; i++) {
-            visited.add(false);
-        }
-
-        // find all trees if graph is disconnected
-        while (visited.contains(false)) {
-            int vertex = visited.indexOf(false);
-            Recurse(vertex, visited);
-            result += '\n';
-        }
-
-        // print the result to the console
-        System.out.println(result);
-    }
-
     // iterative DFS
     void iterativeDFS(boolean preorder) {
         // mark all vertices unvisited
         ArrayList<Boolean> visited = new ArrayList<Boolean>(nodeCount);
+        ArrayList<Boolean> returned = new ArrayList<Boolean>(nodeCount);
         for (int i = 0; i < nodeCount; i++) {
             visited.add(false);
+            returned.add(false);
         }
 
         // empty stack
         Stack<Integer> stack = new Stack<>();
 
+        // used to start from source
+        boolean isFirst = true;
+
         // find all trees if graph is disconnected
         while (visited.contains(false)) {
 
             int vertex = visited.indexOf(false);
+            if (isFirst) {
+                vertex = this.sourceNode;
+                isFirst = false;
+            }
             // push the start vertex
+            System.out.println(String.format("stack %d", vertex));
             stack.push(vertex);
             while (!stack.empty()) {
                 // pop the topmost vertex from stack
@@ -116,6 +92,7 @@ class Graph {
                     if (preorder) {
                         result = result + vertex + "\n";
                     }
+                    System.out.println(String.format("visited %d", vertex));
                     // mark the current vertex as visited
                     visited.set(vertex, true);
                 }
@@ -129,14 +106,18 @@ class Graph {
                     int nextVertex = itr.next();
                     if (!visited.get(nextVertex)) {
                         tail = false;
+                        System.out.println(String.format("stack %d", nextVertex));
                         stack.push(nextVertex);
                     }
                 }
 
                 if (!preorder) {
                     if (tail) {
-                        result = result + vertex + "\n";
                         stack.pop();
+                        if (!returned.get(vertex)) {
+                            result = result + vertex + "\n";
+                            returned.set(vertex, true);
+                        }
                     }
                 }
             }
@@ -160,7 +141,7 @@ class Graph {
     public static Graph loadFromFile(String readFile) {
 
         // create new graph
-        Graph graph = new Graph(0);
+        Graph graph = new Graph();
 
         // load data from file
         try {
@@ -174,7 +155,7 @@ class Graph {
                 String[] adjs = new String[0];
 
                 if (idx == 0) {
-                    graph = new Graph(Integer.parseInt(data));
+                    graph.setNodeCount(Integer.parseInt(data));
                     idx += 1;
                     continue;
                 } else if (idx == 1) {
@@ -184,7 +165,7 @@ class Graph {
                 }
 
                 if (idx == vertexCount + 2) {
-                    idx += 1;
+                    graph.setSourceNode(Integer.parseInt(data));
                     continue;
                 }
 
@@ -213,6 +194,8 @@ class Graph {
         graph.iterativeDFS(true);
         // graph.clearResult();
         graph.iterativeDFS(false);
-        writeToFile(args[0]+"output.txt", graph.result);
+
+        // save the result, remove the last \n
+        writeToFile(args[0] + "output.txt", graph.result.substring(0, graph.result.length() - 1));
     }
 }
