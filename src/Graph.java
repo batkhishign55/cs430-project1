@@ -189,13 +189,26 @@ class Graph {
     // Driver Code
     public static void main(String args[]) {
 
-        Graph graph = loadFromFile(args[0]);
+        if (args.length < 2) {
+            System.err.println("Usage: arguments needed -i/--input <filename>");
+            System.exit(1);
+        }
+
+        String inputFlag = args[0];
+        String fileName = args[1];
+
+        if (!inputFlag.equals("-i") && !inputFlag.equals("--input")) {
+            System.err.println("Invalid flag. Please use -i or --input");
+            System.exit(1);
+        }
+
+        Graph graph = loadFromFile(fileName);
 
         graph.iterativeDFS(true);
         // graph.clearResult();
         graph.iterativeDFS(false);
 
         // save the result, remove the last \n
-        writeToFile(args[0] + "output.txt", graph.result.substring(0, graph.result.length() - 1));
+        writeToFile(fileName + "output.txt", graph.result.substring(0, graph.result.length() - 1));
     }
 }
